@@ -19,3 +19,10 @@ jobs:
     - name: build
       run: |
         g++ hello.cpp -o hello.o
+    
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        name: cpp_app
+        path: hello.o
+        retention-days: 5
