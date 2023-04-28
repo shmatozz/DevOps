@@ -1,37 +1,65 @@
 name: build cpp
-  
+
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
+  workflow_dispatch:
+
 jobs:
   build_matrix:
     strategy:
       matrix:
-        os: [1, 2, 3]
+        os: [1,2,3]
+        ver: [test, prod]
     runs-on: ubuntu-latest
     steps:
       - name: print matrix env
-        run: "echo os: ${{ matrix.os }}"
-  
-  build_cpp:
+        run: "echo os: ${{ matrix.os }}:${{ matrix.ver }}"
 
+  build_cpp_win:
     runs-on: windows-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: configure
-      run: echo Hello World
-      
-    - name: build
-      run: |
-        g++ hello.cpp -o hello.exe
-    
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v3.1.2
-      with:
-        name: cpp_app
-        path: hello.exe
-        retention-days: 5
+      - uses: actions/checkout@v3
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: build 
+        run: |
+          cl /EHsc hello.cpp
+          
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: cpp_app
+          path: hello.exe
+          retention-days: 5
+          
+  build_cpp_lin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: build 
+        run: g++ hello.cpp -o hello_lin.o
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: cpp_app
+          path: hello_lin.o
+          retention-days: 5
+            
+  build_cpp_mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: build 
+        run: g++ hello.cpp -o hello_mac.o
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: cpp_app
+          path: hello_mac.o
+          retention-days: 5
