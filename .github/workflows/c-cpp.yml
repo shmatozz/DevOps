@@ -10,15 +10,16 @@ on:
 
 jobs:
   build_matrix:
+    name: build matrix
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [ubuntu-latest,windows-latest,macos-latest,self-hosted]
     runs-on: ${{ matrix.os }}
-    env: 
-      app_name: hello_${{ matrix.os }}.o
+    env:
+      app_name: hi_${{ matrix.os }}.o
     steps:
       - name: print matrix env
-        run: "echo os: ${{ matrix.os }}"
+        run: ls ~ 
         
       - uses: actions/checkout@v3
       - name: build 
@@ -30,3 +31,27 @@ jobs:
           name: cpp_app_matrix
           path: ${{ env.app_name }}
           retention-days: 5
+  
+  send_telegram:
+    name: send telegram
+    needs: build_matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: cpp_app_matrix
+      - name: ls 
+        run: ls -la 
+      - name: send telegram message on push
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          document: hi_*.o
+          message: |
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}
+
+            Repository: ${{ github.repository }}
+
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
